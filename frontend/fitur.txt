@@ -1,0 +1,83 @@
+✅ Versi Sederhana Sistem Akademik (Cocok untuk Proyek UAS)
+1. Fitur Umum
+✅ Autentikasi multi-role: Admin, Dosen, Mahasiswa
+
+✅ Role-based access control (akses sesuai peran)
+
+✅ Update profil (edit nama, email, password)
+
+✅ Desain responsive (pakai Tailwind)
+
+2. Fitur Admin
+✅ Dashboard ringkas (jumlah mahasiswa, dosen, mata kuliah)
+
+✅ Manajemen Data:
+
+CRUD Mahasiswa
+
+CRUD Dosen
+
+CRUD Mata Kuliah
+
+3. Fitur Mahasiswa
+✅ Dashboard: Info nama, jurusan, SKS
+
+✅ KRS:
+
+Lihat penawaran mata kuliah
+
+Ajukan pengambilan KRS (simpan ke tabel frs)
+
+✅ Nilai:
+
+Lihat nilai dari dosen
+
+✅ Lihat dan edit profil
+
+4. Fitur Dosen
+✅ Dashboard: Info jadwal dan mahasiswa wali
+
+✅ Input nilai untuk mahasiswa
+
+✅ Approve KRS mahasiswa wali
+
+✅ Lihat dan edit profil
+
+5. Teknis
+PostgreSQL + Prisma
+
+SvelteKit + TypeScript
+
+REST API (via +server.ts)
+
+Autentikasi JWT (via cookie)
+
+Validasi pakai Zod (opsional)
+
+Tailwind CSS untuk styling
+
+📦 Struktur Minimum
+pgsql
+Copy
+Edit
+src/
+├── lib/
+│   ├── prisma.ts        // inisialisasi Prisma
+│   └── auth.ts          // fungsi auth helper
+├── routes/
+│   ├── login/+page.svelte
+│   ├── dashboard/+page.svelte
+│   ├── api/
+│   │   ├── auth/+server.ts
+│   │   ├── mahasiswa/+server.ts
+│   │   ├── dosen/+server.ts
+│   │   └── matkul/+server.ts
+├── components/
+│   └── Navbar.svelte
+├── hooks.server.ts      // untuk handle session/auth cookie
+prisma/
+├── schema.prisma        // model-model dari kamu
+📌 Kesimpulan
+Kalau kamu ambil fitur-fitur yang penting dan realistis, dosenmu juga akan lihat kamu beneran ngerti dan implementasiin sistem fullstack, bukan sekadar tempel banyak fitur.
+
+Kalau kamu mau, aku bisa bantu bikin to-do list per fitur biar bisa dicicil dan dipantau progresnya. Mau?
