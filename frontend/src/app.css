@@ -1,2 +1,150 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
+
+:global(body) {
+		margin: 0;
+		font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+	}
+
+	/* Custom scrollbar for tables */
+	.overflow-x-auto::-webkit-scrollbar {
+		height: 8px;
+	}
+
+	.overflow-x-auto::-webkit-scrollbar-track {
+		background: #f1f1f1;
+		border-radius: 4px;
+	}
+
+	.overflow-x-auto::-webkit-scrollbar-thumb {
+		background: #c1c1c1;
+		border-radius: 4px;
+	}
+
+	.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+		background: #a8a8a8;
+	}
+
+	/* Smooth transitions */
+	button {
+		transition: all 0.2s ease-in-out;
+	}
+
+	/* Modal animation */
+	.fixed {
+		animation: fadeIn 0.2s ease-in-out;
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	/* Loading spinner animation */
+	.animate-spin {
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	/* Responsive table */
+	@media (max-width: 768px) {
+		.overflow-x-auto {
+			-webkit-overflow-scrolling: touch;
+		}
+
+		table {
+			font-size: 14px;
+		}
+
+		.px-6 {
+			padding-left: 1rem;
+			padding-right: 1rem;
+		}
+
+		.py-4 {
+			padding-top: 0.75rem;
+			padding-bottom: 0.75rem;
+		}
+	}
+
+	/* Custom form styles */
+	input:focus,
+	textarea:focus,
+	select:focus {
+		outline: none;
+		border-color: #3b82f6;
+		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	}
+
+	/* Button hover effects */
+	.bg-blue-600:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+	}
+
+	.bg-gray-300:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	/* Status badge animations */
+	.px-2.py-1 {
+		transition: all 0.2s ease-in-out;
+	}
+
+	/* Table row hover */
+	tbody tr:hover {
+		background-color: #f9fafb;
+	}
+
+	/* Profile image styling */
+	img {
+		transition: all 0.2s ease-in-out;
+	}
+
+	img:hover {
+		transform: scale(1.05);
+	}
+
+	/* Navigation active state enhancement */
+	.bg-white.text-blue-700 {
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	}
+
+	/* Dashboard cards enhancement */
+	.bg-white.rounded-lg.shadow {
+		transition: all 0.2s ease-in-out;
+	}
+
+	.bg-white.rounded-lg.shadow:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+	}
+
+	/* Modal backdrop blur effect */
+	.bg-gray-600.bg-opacity-50 {
+		backdrop-filter: blur(4px);
+	}
+
+	/* Enhanced table styling */
+	.min-w-full.divide-y.divide-gray-200 {
+		border-radius: 8px;
+		overflow: hidden;
+	}
+
+	/* Empty state styling */
+	.text-center.py-12 {
+		background: linear-gradient(45deg, #f8fafc, #f1f5f9);
+	}

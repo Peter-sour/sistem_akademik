@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model courses {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String     @unique @db.VarChar(20)
+  name        String     @db.VarChar(255)
+  credits     Int
+  semester    Int
+  program_id  String     @db.Uuid
+  lecturer_id String?    @db.Uuid
+  schedule    String?    @db.VarChar(255)
+  room        String?    @db.VarChar(100)
+  capacity    Int?       @default(40)
+  description String?
+  is_active   Boolean?   @default(true)
+  created_at  DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime?  @default(now()) @db.Timestamptz(6)
+  lecturers   lecturers? @relation(fields: [lecturer_id], references: [id], onUpdate: NoAction)
+  programs    programs   @relation(fields: [program_id], references: [id], onUpdate: NoAction)
+  krs         krs[]
+
+  @@index([program_id, semester], map: "idx_courses_program_semester")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model krs {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  student_id    String    @db.Uuid
+  course_id     String    @db.Uuid
+  academic_year String    @db.VarChar(9)
+  semester_type String    @db.VarChar(10)
+  status        String?   @default("active") @db.VarChar(20)
+  grade         String?   @db.VarChar(2)
+  grade_point   Decimal?  @db.Decimal(3, 2)
+  added_at      DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime? @default(now()) @db.Timestamptz(6)
+  courses       courses   @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  students      students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([student_id, course_id, academic_year, semester_type])
+  @@index([status, academic_year], map: "idx_krs_status_year")
+}
+
+model lecturers {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String?   @unique @db.Uuid
+  nidn           String    @unique @db.VarChar(20)
+  name           String    @db.VarChar(255)
+  email          String    @db.VarChar(255)
+  phone          String?   @db.VarChar(20)
+  specialization String?   @db.VarChar(255)
+  created_at     DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime? @default(now()) @db.Timestamptz(6)
+  courses        courses[]
+  users          users?    @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model letter_requests {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  student_id       String       @db.Uuid
+  letter_type_id   String       @db.Uuid
+  purpose          String
+  status           String?      @default("pending") @db.VarChar(20)
+  approved_by      String?      @db.Uuid
+  approved_at      DateTime?    @db.Timestamptz(6)
+  rejection_reason String?
+  notes            String?
+  file_path        String?      @db.VarChar(500)
+  created_at       DateTime?    @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime?    @default(now()) @db.Timestamptz(6)
+  users            users?       @relation(fields: [approved_by], references: [id], onUpdate: NoAction)
+  letter_types     letter_types @relation(fields: [letter_type_id], references: [id], onUpdate: NoAction)
+  students         students     @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([student_id, status], map: "idx_letter_requests_student_status")
+}
+
+model letter_types {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code            String            @unique @db.VarChar(20)
+  name            String            @db.VarChar(255)
+  description     String?
+  template        String?
+  is_active       Boolean?          @default(true)
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  letter_requests letter_requests[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model programs {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String     @unique @db.VarChar(10)
+  name         String     @db.VarChar(255)
+  faculty      String     @db.VarChar(255)
+  degree_level String     @db.VarChar(10)
+  created_at   DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime?  @default(now()) @db.Timestamptz(6)
+  courses      courses[]
+  students     students[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model students {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String            @unique @db.Uuid
+  nim             String            @unique @db.VarChar(20)
+  name            String            @db.VarChar(255)
+  email           String            @db.VarChar(255)
+  phone           String?           @db.VarChar(20)
+  address         String?
+  photo           String?           @db.VarChar(500)
+  program_id      String            @db.Uuid
+  semester        Int?              @default(1)
+  entry_year      Int
+  status          String?           @default("active") @db.VarChar(20)
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  krs             krs[]
+  letter_requests letter_requests[]
+  programs        programs          @relation(fields: [program_id], references: [id], onUpdate: NoAction)
+  users           users             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([status], map: "idx_students_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String            @unique @db.VarChar(255)
+  password        String            @db.VarChar(255)
+  role            String            @default("mahasiswa") @db.VarChar(20)
+  is_active       Boolean?          @default(true)
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  lecturers       lecturers?
+  letter_requests letter_requests[]
+  students        students?
+}

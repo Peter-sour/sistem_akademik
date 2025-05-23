@@ -1,0 +1,335 @@
+-- =============================================
+-- DATABASE SCHEMA UNTUK PORTAL MAHASISWA
+-- NEXIS UNIVERSITY
+-- =============================================
+
+-- Tabel Users (untuk autentikasi)
+CREATE TABLE users (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('mahasiswa', 'dosen', 'admin') DEFAULT 'mahasiswa',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabel Program Studi
+CREATE TABLE programs (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    code VARCHAR(10) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    faculty VARCHAR(255) NOT NULL,
+    degree_level ENUM('D3', 'S1', 'S2', 'S3') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabel Mahasiswa (Profil)
+CREATE TABLE students (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id VARCHAR(36) UNIQUE NOT NULL,
+    nim VARCHAR(20) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    address TEXT,
+    photo VARCHAR(500),
+    program_id VARCHAR(36) NOT NULL,
+    semester INT DEFAULT 1,
+    entry_year YEAR NOT NULL,
+    status ENUM('active', 'inactive', 'graduated', 'dropped') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE RESTRICT,
+    INDEX idx_nim (nim),
+    INDEX idx_user_id (user_id),
+    INDEX idx_program_id (program_id)
+);
+
+-- Tabel Dosen
+CREATE TABLE lecturers (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id VARCHAR(36) UNIQUE,
+    nidn VARCHAR(20) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    specialization VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_nidn (nidn)
+);
+
+-- Tabel Mata Kuliah
+CREATE TABLE courses (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    code VARCHAR(20) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    credits INT NOT NULL,
+    semester INT NOT NULL,
+    program_id VARCHAR(36) NOT NULL,
+    lecturer_id VARCHAR(36),
+    schedule VARCHAR(255),
+    room VARCHAR(100),
+    capacity INT DEFAULT 40,
+    description TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE RESTRICT,
+    FOREIGN KEY (lecturer_id) REFERENCES lecturers(id) ON DELETE SET NULL,
+    INDEX idx_code (code),
+    INDEX idx_program_id (program_id),
+    INDEX idx_semester (semester)
+);
+
+-- Tabel KRS (Kartu Rencana Studi)
+CREATE TABLE krs (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    student_id VARCHAR(36) NOT NULL,
+    course_id VARCHAR(36) NOT NULL,
+    academic_year VARCHAR(9) NOT NULL, -- Format: 2024/2025
+    semester_type ENUM('ganjil', 'genap') NOT NULL,
+    status ENUM('active', 'dropped', 'completed') DEFAULT 'active',
+    grade CHAR(2), -- A, B+, B, C+, C, D, E
+    grade_point DECIMAL(3,2), -- 4.00, 3.75, dst
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_krs (student_id, course_id, academic_year, semester_type),
+    INDEX idx_student_id (student_id),
+    INDEX idx_course_id (course_id),
+    INDEX idx_academic_year (academic_year)
+);
+
+-- Tabel Jenis Surat
+CREATE TABLE letter_types (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    code VARCHAR(20) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    template TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel Pengajuan Surat
+CREATE TABLE letter_requests (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    student_id VARCHAR(36) NOT NULL,
+    letter_type_id VARCHAR(36) NOT NULL,
+    purpose TEXT NOT NULL,
+    status ENUM('pending', 'approved', 'rejected', 'completed') DEFAULT 'pending',
+    approved_by VARCHAR(36),
+    approved_at TIMESTAMP NULL,
+    rejection_reason TEXT,
+    notes TEXT,
+    file_path VARCHAR(500), -- Path file surat yang sudah jadi
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (letter_type_id) REFERENCES letter_types(id) ON DELETE RESTRICT,
+    FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_student_id (student_id),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at)
+);
+
+-- =============================================
+-- SAMPLE DATA / SEEDER
+-- =============================================
+
+-- Insert Program Studi
+INSERT INTO programs (id, code, name, faculty, degree_level) VALUES
+('prog-1', 'TI', 'Teknik Informatika', 'Fakultas Teknik', 'S1'),
+('prog-2', 'SI', 'Sistem Informasi', 'Fakultas Teknik', 'S1'),
+('prog-3', 'MI', 'Manajemen Informatika', 'Fakultas Teknik', 'D3'),
+('prog-4', 'AK', 'Akuntansi', 'Fakultas Ekonomi', 'S1'),
+('prog-5', 'MN', 'Manajemen', 'Fakultas Ekonomi', 'S1');
+
+-- Insert Letter Types
+INSERT INTO letter_types (id, code, name, description) VALUES
+('lt-1', 'SAK', 'Surat Aktif Kuliah', 'Surat keterangan mahasiswa aktif kuliah'),
+('lt-2', 'SPP', 'Surat Pengantar PKL', 'Surat pengantar untuk praktik kerja lapangan'),
+('lt-3', 'SRK', 'Surat Rekomendasi', 'Surat rekomendasi untuk keperluan beasiswa atau lainnya'),
+('lt-4', 'SKL', 'Surat Keterangan Lulus', 'Surat keterangan kelulusan sementara');
+
+-- Insert Sample User & Student (untuk testing)
+INSERT INTO users (id, email, password, role) VALUES
+('user-1', 'malakul@nexis.ac.id', '$2b$10$example_hash', 'mahasiswa'),
+('user-2', 'dosen1@nexis.ac.id', '$2b$10$example_hash', 'dosen'),
+('user-3', 'admin@nexis.ac.id', '$2b$10$example_hash', 'admin');
+
+INSERT INTO lecturers (id, user_id, nidn, name, email, specialization) VALUES
+('lect-1', 'user-2', '0123456789', 'Dr. Ahmad Sutrisno, M.Kom', 'dosen1@nexis.ac.id', 'Database Systems'),
+('lect-2', NULL, '0123456790', 'Prof. Siti Nurhaliza, Ph.D', 'siti@nexis.ac.id', 'Software Engineering'),
+('lect-3', NULL, '0123456791', 'Ir. Budi Santoso, M.T', 'budi@nexis.ac.id', 'Network Security');
+
+INSERT INTO students (id, user_id, nim, name, email, phone, address, program_id, semester, entry_year) VALUES
+('std-1', 'user-1', '2024001001', 'Muhammad Malakul Mulki', 'malakul@nexis.ac.id', '081234567890',
+'Jl. Merdeka No. 123, Jakarta Selatan', 'prog-1', 3, 2024);
+
+-- Insert Sample Courses
+INSERT INTO courses (id, code, name, credits, semester, program_id, lecturer_id, schedule, room) VALUES
+('course-1', 'TI101', 'Pemrograman Dasar', 3, 1, 'prog-1', 'lect-1', 'Senin 08:00-10:30', 'Lab. Komputer 1'),
+('course-2', 'TI102', 'Matematika Diskrit', 3, 1, 'prog-1', 'lect-2', 'Selasa 10:30-13:00', 'R. Kuliah 201'),
+('course-3', 'TI201', 'Struktur Data', 3, 2, 'prog-1', 'lect-1', 'Rabu 08:00-10:30', 'Lab. Komputer 2'),
+('course-4', 'TI202', 'Basis Data', 3, 2, 'prog-1', 'lect-1', 'Kamis 13:00-15:30', 'Lab. Komputer 1'),
+('course-5', 'TI301', 'Rekayasa Perangkat Lunak', 3, 3, 'prog-1', 'lect-2', 'Jumat 08:00-10:30', 'R. Kuliah 301'),
+('course-6', 'TI302', 'Jaringan Komputer', 3, 3, 'prog-1', 'lect-3', 'Senin 13:00-15:30', 'Lab. Jaringan');
+
+-- =============================================
+-- VIEWS UNTUK MEMPERMUDAH QUERY
+-- =============================================
+
+-- View untuk data mahasiswa lengkap
+CREATE VIEW v_students_complete AS
+SELECT
+    s.id,
+    s.user_id,
+    s.nim,
+    s.name,
+    s.email,
+    s.phone,
+    s.address,
+    s.photo,
+    s.semester,
+    s.entry_year,
+    s.status,
+    p.code as program_code,
+    p.name as program_name,
+    p.faculty,
+    p.degree_level,
+    s.created_at,
+    s.updated_at
+FROM students s
+JOIN programs p ON s.program_id = p.id;
+
+-- View untuk KRS dengan detail mata kuliah
+CREATE VIEW v_krs_complete AS
+SELECT
+    k.id,
+    k.student_id,
+    k.academic_year,
+    k.semester_type,
+    k.status,
+    k.grade,
+    k.grade_point,
+    k.added_at,
+    c.id as course_id,
+    c.code as course_code,
+    c.name as course_name,
+    c.credits,
+    c.semester as course_semester,
+    c.schedule,
+    c.room,
+    l.name as lecturer_name,
+    s.nim,
+    s.name as student_name
+FROM krs k
+JOIN courses c ON k.course_id = c.id
+JOIN students s ON k.student_id = s.id
+LEFT JOIN lecturers l ON c.lecturer_id = l.id;
+
+-- View untuk pengajuan surat lengkap
+CREATE VIEW v_letter_requests_complete AS
+SELECT
+    lr.id,
+    lr.purpose,
+    lr.status,
+    lr.approved_at,
+    lr.rejection_reason,
+    lr.notes,
+    lr.file_path,
+    lr.created_at,
+    lr.updated_at,
+    s.nim,
+    s.name as student_name,
+    s.email as student_email,
+    lt.code as letter_type_code,
+    lt.name as letter_type_name,
+    lt.description as letter_type_description,
+    approver.email as approved_by_email
+FROM letter_requests lr
+JOIN students s ON lr.student_id = s.id
+JOIN letter_types lt ON lr.letter_type_id = lt.id
+LEFT JOIN users approver ON lr.approved_by = approver.id;
+
+-- =============================================
+-- STORED PROCEDURES (OPTIONAL)
+-- =============================================
+
+-- Procedure untuk menghitung IPK mahasiswa
+DELIMITER //
+CREATE PROCEDURE CalculateGPA(IN student_id VARCHAR(36), OUT gpa DECIMAL(3,2))
+BEGIN
+    SELECT AVG(grade_point) INTO gpa
+    FROM krs
+    WHERE student_id = student_id
+    AND grade_point IS NOT NULL
+    AND status = 'completed';
+END //
+DELIMITER ;
+
+-- Procedure untuk mendapatkan total SKS yang sudah diambil
+DELIMITER //
+CREATE PROCEDURE GetTotalCredits(IN student_id VARCHAR(36), OUT total_credits INT)
+BEGIN
+    SELECT SUM(c.credits) INTO total_credits
+    FROM krs k
+    JOIN courses c ON k.course_id = c.id
+    WHERE k.student_id = student_id
+    AND k.status IN ('active', 'completed');
+END //
+DELIMITER ;
+
+-- =============================================
+-- INDEXES TAMBAHAN UNTUK PERFORMA
+-- =============================================
+
+-- Index untuk query yang sering digunakan
+CREATE INDEX idx_students_status ON students(status);
+CREATE INDEX idx_krs_status_year ON krs(status, academic_year);
+CREATE INDEX idx_letter_requests_student_status ON letter_requests(student_id, status);
+CREATE INDEX idx_courses_program_semester ON courses(program_id, semester);
+
+-- =============================================
+-- TRIGGERS (OPTIONAL)
+-- =============================================
+
+-- Trigger untuk update timestamp
+DELIMITER //
+CREATE TRIGGER tr_students_updated_at
+BEFORE UPDATE ON students
+FOR EACH ROW
+BEGIN
+    SET NEW.updated_at = CURRENT_TIMESTAMP;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER tr_krs_updated_at
+BEFORE UPDATE ON krs
+FOR EACH ROW
+BEGIN
+    SET NEW.updated_at = CURRENT_TIMESTAMP;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER tr_letter_requests_updated_at
+BEFORE UPDATE ON letter_requests
+FOR EACH ROW
+BEGIN
+    SET NEW.updated_at = CURRENT_TIMESTAMP;
+END //
+DELIMITER ;

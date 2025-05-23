@@ -20,19 +20,23 @@
         return;
       }
 
-      const response = await fetch('http://localhost:3000/api/users/login', {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
 
         },
-        body: JSON.stringify({ username: email, password })
+        body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || 'Login gagal');
+      }else{
+        console.log('Response:', data);
+        console.log('Token received from login:', data.data.user.email);
+        console.log('Token received is :', data.data.token);
       }
 
       // Successful login
@@ -40,9 +44,10 @@
       console.log('Login berhasil:', data);
 
       // Example: store token and redirect
-      localStorage.setItem('token', data.token);
+      localStorage.setItem('token', data.data.token);
+      console.log('Token received from login:', data.token);
       // window.location.href = '/dashboard';
-      goto('/');
+      goto('/profile');
 
     } catch (err) {
       const error = err as Error;
