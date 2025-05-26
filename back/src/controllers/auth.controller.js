@@ -152,7 +152,7 @@ export const getProfile = async (req, res) => {
 
     if (req.user.peran === 'mahasiswa') {
       const result = await pool.query(`
-        SELECT m.id, m.nim, m.pengguna_id,m.nama, m.semester, m.tahun_masuk, m.status,
+        SELECT m.id, m.nim, m.pengguna_id,m.photo,m.nomor_telepon,m.alamat, m.nama, m.semester, m.tahun_masuk, m.status,
               p.kode as program_kode, p.nama as program_nama, p.fakultas, p.jenjang
         FROM mahasiswa m
         JOIN program_studi p ON m.program_id = p.id

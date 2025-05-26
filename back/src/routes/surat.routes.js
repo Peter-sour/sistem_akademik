@@ -25,7 +25,7 @@ router.get('/', authenticateUser, getLetters);
  * @desc Create a letter request
  * @access Private (Students only)
  */
-router.post('/', authenticateUser, validateLetter,validateLetterStatus, createLetter);
+router.post('/', authenticateUser, createLetter);
 
 /**
  * @route PUT /api/pengajuan/:id

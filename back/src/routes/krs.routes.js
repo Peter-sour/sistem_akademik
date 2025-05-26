@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getKrs, addKrs, deleteKrs,getAvailableCourses } from '../controllers/krs.controller.js';
+import { getGrade, getKrs, addKrs,getRanking, deleteKrs,getAvailableCourses } from '../controllers/krs.controller.js';
 import { authenticateUser } from '../middlewares/auth.js';
 import { validateKrs } from '../middlewares/validator.js';
 
@@ -17,7 +17,7 @@ router.get('/', authenticateUser, getKrs);
  * @desc Add course to KRS
  * @access Private
  */
-router.post('/', authenticateUser,validateKrs, addKrs);
+router.post('/', authenticateUser,addKrs);
 
 /**
  * @route DELETE /api/krs/:id
@@ -28,6 +28,8 @@ router.delete('/delete', authenticateUser, deleteKrs);
 
 // di routes/krs.js atau routes/mataKuliah.js
 router.get('/available-mata-kuliah', authenticateUser, getAvailableCourses);
+router.get('/nilai',authenticateUser, getGrade);
+router.get('/ranking', authenticateUser, getRanking);
 
 
 export default router;

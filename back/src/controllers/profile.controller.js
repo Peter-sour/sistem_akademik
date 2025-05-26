@@ -14,7 +14,7 @@ export const getProfile = async (req, res) => {
     }
 
     const result = await pool.query(
-      `SELECT m.id, m.nim, m.nama, m.semester, m.tahun_masuk, m.status,
+      `SELECT m.id, m.nim, m.nama,m.nomor_telepon, m.alamat,  m.semester, m.tahun_masuk, m.status,
               p.kode as program_kode, p.nama as program_nama, p.fakultas, p.jenjang
        FROM mahasiswa m
        JOIN program_studi p ON m.program_id = p.id

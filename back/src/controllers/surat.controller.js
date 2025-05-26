@@ -123,7 +123,7 @@ export const updateLetter = async (req, res) => {
       }
 
       const studentResult = await pool.query(
-        'SELECT id FROM mahasiswa WHERE pengguna_id = $1',
+        'select pm.id from permintaan_surat pm join mahasiswa m ON pm.mahasiswa_id = m.id where pengguna_id =$1',
         [req.user.id]
       );
 
@@ -136,7 +136,7 @@ export const updateLetter = async (req, res) => {
       const result = await pool.query(
         `UPDATE permintaan_surat
          SET keperluan = $1
-         WHERE mahasiswa_id = $2
+         WHERE id = $2
          RETURNING keperluan`,
         [keperluan, studentId]
       );
